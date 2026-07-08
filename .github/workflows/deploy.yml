@@ -20,7 +20,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --prefer-offline --no-audit --no-fund
+          cache: 'npm'
+      - run: npm cache clean --force
+      - name: Install dependencies
+        run: npm install --prefer-offline --no-audit --no-fund
+        continue-on-error: true
+      - name: Install dependencies (retry)
+        run: npm install --prefer-offline --no-audit --no-fund
+        if: failure()
       - run: npm run build
         env:
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
