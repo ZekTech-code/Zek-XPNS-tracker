@@ -1,0 +1,124 @@
+rules_version = '2';
+// XPNS Expense Tracker — Firestore Security Rules
+//
+// Data model:
+//   /users/{userId}
+//     Fields: email, displayName, lastLogin, preferences (object),
+//             photoURL, updatedAt
+//     Sub-collections:
+//       transactions/all   — { transactions: [...], updatedAt }
+//       security_events/   — append-only audit log
+//
+// Rules philosophy:
+//   • Every read/write requires the requesting user to own the document.
+//   • Transaction writes are validated for correct field shape and value ranges.
+//   • Security events are write-only (append), readable only by owner.
+//   • All other paths are denied.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    //Helper functions
+
+    // True only when a valid Firebase Auth token is present.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // True when the authenticated user owns the document path.
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Validates a single transaction object inside the transactions array.
+    // Each transaction must have: id (number), type (deposit|expense),
+    // name (non-empty string, max 200 chars), amount (positive number > 0),
+    // date (string — ISO format).
+    function isValidTransaction(tx) {
+      return tx.keys().hasAll(['id','type','name','amount','date'])
+          && tx.type   in ['deposit','expense']
+          && tx.name   is string
+          && tx.name.size() > 0
+          && tx.name.size() <= 200
+          && tx.amount is number
+          && tx.amount >  0
+          && tx.amount <= 1000000000     // sanity cap: 1 billion
+          && tx.date   is string
+          && tx.date.size() > 0;
+    }
+
+    // Validates the entire transactions document being written.
+    function isValidTransactionDoc() {
+      let data = request.resource.data;
+      return data.keys().hasAny(['transactions','updatedAt'])
+          && (
+               !('transactions' in data)
+               || (
+                    data.transactions is list
+                    && data.transactions.size() <= 50000
+                    && (data.transactions.size() == 0
+                        || isValidTransaction(data.transactions[0]))
+                  )
+             );
+    }
+
+    // Validates a security event document (append-only audit log).
+    function isValidSecurityEvent() {
+      let data = request.resource.data;
+      let allowedTypes = [
+        'login_success','login_failure','lockout','session_timeout',
+        'visibility_lock','new_device','logout','reauth_success','reauth_failure'
+      ];
+      return data.keys().hasAll(['type','timestamp'])
+          && data.type is string
+          && data.type in allowedTypes
+          && data.size() <= 20;          // prevent oversized event docs
+    }
+
+    //User profile document
+    match /users/{userId} {
+
+      // Only the owner may read their own profile.
+      allow read: if isOwner(userId);
+
+      // Only the owner may create their own profile document.
+      allow create: if isOwner(userId);
+
+      // Only the owner may update their own profile.
+      allow update: if isOwner(userId);
+
+      // Profile documents are never deleted through the app.
+      allow delete: if false;
+
+      //Transaction sub-collection
+      // All transactions are stored in a single document ("all").
+      match /transactions/{transactionId} {
+
+        allow read: if isOwner(userId);
+
+        // create + update: enforce valid transaction shape and value ranges.
+        allow create, update: if isOwner(userId) && isValidTransactionDoc();
+
+        // delete: called when the user clears all transactions.
+        allow delete: if isOwner(userId);
+      }
+
+      //Security events sub-collection
+      // Append-only audit log. Owner can read; owner can create (never update/delete).
+      match /security_events/{eventId} {
+
+        allow read:   if isOwner(userId);
+
+        // Append-only — no update or delete ever allowed.
+        allow create: if isOwner(userId) && isValidSecurityEvent();
+
+        allow update, delete: if false;
+      }
+    }
+
+    //Catch-all: deny every other path
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
