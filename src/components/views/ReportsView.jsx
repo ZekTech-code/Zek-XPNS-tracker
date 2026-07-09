@@ -122,14 +122,14 @@ function RecapBanner({ transactions, currency, reportPeriod, selectedPeriod }) {
       </div>
       <div className="recap-cards-row">
         <RecapCard
-          title={reportPeriod === 'weekly' && selectedPeriod ? weekLabel(weekKey) : 'This Week'}
+          title={weekKey === currentWeek ? 'This Week' : weekLabel(weekKey)}
           icon={<i className="fa-solid fa-calendar-week" style={{ color: 'var(--indigo)' }} />}
           dep={wDep} exp={wExp} net={wNet} savRate={wSav} txCount={wTx.length}
           periodLabel={weekLabel(weekKey)}
           currency={currency}
         />
         <RecapCard
-          title={selectedPeriod ? monthLabel(monthKey) : 'This Month'}
+          title={monthKey === currentMonth ? 'This Month' : monthLabel(monthKey)}
           icon={<i className="fa-solid fa-calendar-days" style={{ color: 'var(--teal)' }} />}
           dep={mDep} exp={mExp} net={mNet} savRate={mSav} txCount={mTx.length}
           periodLabel={monthLabel(monthKey)}
