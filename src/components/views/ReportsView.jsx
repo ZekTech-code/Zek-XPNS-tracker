@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { activeTransactions, displayMoney, formatDateFull, formatMoney, formatSignedMoney, getMetrics, getMonthKey, getWeekKey, groupTransactions, monthLabel, sortNewest, weekLabel } from '../../utils/finance.js';
 
+const MASK = '\u2022\u2022\u2022\u2022';
+
 function SummaryCards({ items, currency, hideBalance }) {
   const { dep, exp, bal } = getMetrics(items);
   const savRate = dep > 0 ? Math.max(0, Math.round(((dep - exp) / dep) * 100)) : 0;
@@ -30,7 +32,7 @@ function SummaryCards({ items, currency, hideBalance }) {
   );
 }
 
-function ReportList({ items, currency }) {
+function ReportList({ items, currency, hideBalance }) {
   if (!items.length) return <div className="report-no-tx"><i className="fa-regular fa-folder-open" /><p>No transactions in this period.</p></div>;
   return (
     <div className="report-tx-list">
@@ -45,14 +47,14 @@ function ReportList({ items, currency }) {
               <div className="report-tx-date">{formatDateFull(tx.date)}</div>
             </div>
           </div>
-          <div className={`report-tx-amount report-tx-amount--${tx.type}`}>{tx.type === 'deposit' ? '+' : '-'}{formatMoney(tx.amount, currency)}</div>
+          <div className={`report-tx-amount report-tx-amount--${tx.type}`}>{tx.type === 'deposit' ? '+' : '-'}{hideBalance ? MASK : formatMoney(tx.amount, currency)}</div>
         </div>
       ))}
     </div>
   );
 }
 
-function RecapCard({ title, icon, dep, exp, net, savRate, txCount, periodLabel, currency }) {
+function RecapCard({ title, icon, dep, exp, net, savRate, txCount, periodLabel, currency, hideBalance }) {
   const netColor = net >= 0 ? 'var(--green)' : 'var(--red)';
   const netSign  = net >= 0 ? '+' : '\u2212';
   const savColor = savRate >= 50 ? 'var(--green)' : savRate >= 20 ? 'var(--indigo)' : 'var(--red)';
@@ -63,18 +65,18 @@ function RecapCard({ title, icon, dep, exp, net, savRate, txCount, periodLabel, 
         <div className="recap-card-title">{title}</div>
         <div className="recap-period-label">{periodLabel}</div>
       </div>
-      <div className="recap-net" style={{ color: netColor }}>{netSign}{formatMoney(Math.abs(net), currency)}</div>
+      <div className="recap-net" style={{ color: netColor }}>{netSign}{hideBalance ? MASK : formatMoney(Math.abs(net), currency)}</div>
       <div className="recap-net-label">{net >= 0 ? 'Net Surplus' : 'Net Deficit'}</div>
       <div className="recap-stats">
         <div className="recap-stat">
           <span className="recap-stat-dot" style={{ background: 'var(--green)' }} />
           <span className="recap-stat-label">Deposits</span>
-          <span className="recap-stat-val green">{formatMoney(dep, currency)}</span>
+          <span className="recap-stat-val green">{hideBalance ? MASK : formatMoney(dep, currency)}</span>
         </div>
         <div className="recap-stat">
           <span className="recap-stat-dot" style={{ background: 'var(--red)' }} />
           <span className="recap-stat-label">Expenses</span>
-          <span className="recap-stat-val red">{formatMoney(exp, currency)}</span>
+          <span className="recap-stat-val red">{hideBalance ? MASK : formatMoney(exp, currency)}</span>
         </div>
         <div className="recap-stat">
           <span className="recap-stat-dot" style={{ background: 'var(--indigo)' }} />
@@ -91,7 +93,7 @@ function RecapCard({ title, icon, dep, exp, net, savRate, txCount, periodLabel, 
   );
 }
 
-function RecapBanner({ transactions, currency, reportPeriod, selectedPeriod }) {
+function RecapBanner({ transactions, currency, reportPeriod, selectedPeriod, hideBalance }) {
   const now = new Date();
   const currentWeek = getWeekKey(now);
   const currentMonth = getMonthKey(now);
@@ -127,6 +129,7 @@ function RecapBanner({ transactions, currency, reportPeriod, selectedPeriod }) {
           dep={wDep} exp={wExp} net={wNet} savRate={wSav} txCount={wTx.length}
           periodLabel={weekLabel(weekKey)}
           currency={currency}
+          hideBalance={hideBalance}
         />
         <RecapCard
           title={monthKey === currentMonth ? 'This Month' : monthLabel(monthKey)}
@@ -134,13 +137,14 @@ function RecapBanner({ transactions, currency, reportPeriod, selectedPeriod }) {
           dep={mDep} exp={mExp} net={mNet} savRate={mSav} txCount={mTx.length}
           periodLabel={monthLabel(monthKey)}
           currency={currency}
+          hideBalance={hideBalance}
         />
       </div>
     </div>
   );
 }
 
-export default function ReportsView({ transactions, currency, hideBalance, reportPeriod, setReportPeriod, selectedPeriod, setSelectedPeriod }) {
+export default function ReportsView({ transactions, currency, hideBalance, reportPeriod, setReportPeriod, selectedPeriod, setSelectedPeriod, onExportPDF }) {
   const activeTx = useMemo(() => activeTransactions(transactions), [transactions]);
   const grouped = useMemo(() => groupTransactions(activeTx, reportPeriod === 'weekly' ? getWeekKey : getMonthKey), [reportPeriod, activeTx]);
   const keys = Object.keys(grouped).sort().reverse();
@@ -153,6 +157,7 @@ export default function ReportsView({ transactions, currency, hideBalance, repor
       <div className="page-header">
         <div><h1 className="page-title">Reports</h1><p className="page-sub">Weekly & monthly summaries</p></div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button className="btn btn--export" title="Export to PDF" onClick={onExportPDF}><i className="fa-solid fa-file-pdf" /> Export PDF</button>
           <select id="reportPeriodSelect" className="currency-pill" style={{ minWidth: 180, height: 34, padding: '0 10px' }} value={selected} onChange={(event) => setSelectedPeriod(event.target.value)}>
             {keys.map((key) => <option key={key} value={key}>{reportPeriod === 'weekly' ? weekLabel(key) : monthLabel(key)}</option>)}
           </select>
@@ -170,17 +175,17 @@ export default function ReportsView({ transactions, currency, hideBalance, repor
                 <div className="report-period-title">{reportPeriod === 'weekly' ? weekLabel(selected) : monthLabel(selected)}</div>
                 <div className="report-period-subtitle">{items.length} transaction{items.length === 1 ? '' : 's'}</div>
               </div>
-              <div className={`report-period-net ${bal >= 0 ? 'positive' : 'negative'}`}>{bal >= 0 ? '+' : '-'}{formatMoney(Math.abs(bal), currency)}</div>
+              <div className={`report-period-net ${bal >= 0 ? 'positive' : 'negative'}`}>{hideBalance ? MASK : `${bal >= 0 ? '+' : '-'}${formatMoney(Math.abs(bal), currency)}`}</div>
             </div>
             <SummaryCards items={items} currency={currency} hideBalance={hideBalance} />
             <div className="report-tx-section">
               <div className="report-tx-section-title"><i className="fa-solid fa-list-ul" /> Transaction Log</div>
-              <ReportList items={items} currency={currency} />
+              <ReportList items={items} currency={currency} hideBalance={hideBalance} />
             </div>
           </div>
         )}
       </div>
-      <RecapBanner transactions={activeTx} currency={currency} reportPeriod={reportPeriod} selectedPeriod={selected} />
+      <RecapBanner transactions={activeTx} currency={currency} reportPeriod={reportPeriod} selectedPeriod={selected} hideBalance={hideBalance} />
     </div>
   );
 }

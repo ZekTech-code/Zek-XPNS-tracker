@@ -444,10 +444,10 @@ export default function App() {
             <main className="main-content">
               {activeView === 'dashboard' && <DashboardView state={appState} actions={appActions} />}
               {activeView === 'history' && <HistoryView transactions={transactions} currency={currency} filter={historyFilter} setFilter={setHistoryFilter} search={search} setSearch={setSearch} onDelete={deleteTransaction} onExportPDF={exportPDF} />}
-              {activeView === 'reports' && <ReportsView transactions={transactions} currency={currency} hideBalance={hideBalance} reportPeriod={reportPeriod} setReportPeriod={setReportPeriod} selectedPeriod={selectedReportPeriod} setSelectedPeriod={setSelectedReportPeriod} />}
+              {activeView === 'reports' && <ReportsView transactions={transactions} currency={currency} hideBalance={hideBalance} reportPeriod={reportPeriod} setReportPeriod={setReportPeriod} selectedPeriod={selectedReportPeriod} setSelectedPeriod={setSelectedReportPeriod} onExportPDF={exportPDF} />}
               {activeView === 'profile' && <ProfileView user={currentUser} profile={profile} transactions={transactions} currency={currency} hideBalance={hideBalance} theme={theme} avatarColor={avatarColor} colorPickerOpen={colorPickerOpen} setColorPickerOpen={setColorPickerOpen} setAvatarColor={setAvatarColor} setCurrency={setCurrency} toggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')} toggleHideBalance={() => setHideBalance(!hideBalance)} onSaveName={saveProfileName} profileNameDraft={profileNameDraft} setProfileNameDraft={setProfileNameDraft} profileNameError={profileNameError} onAvatarUpload={uploadAvatar} onClearAll={clearAll} onExportPDF={exportPDF} onLogout={logout} />}
             </main>
-            <TransactionModal open={modalOpen} filter={modalFilter} setFilter={setModalFilter} transactions={transactions} currency={currency} onClose={() => setModalOpen(false)} onDelete={deleteTransaction} />
+            <TransactionModal open={modalOpen} filter={modalFilter} setFilter={setModalFilter} transactions={transactions} currency={currency} onClose={() => setModalOpen(false)} onDelete={deleteTransaction} hideBalance={hideBalance} />
           </div>
         )}
       </Suspense>

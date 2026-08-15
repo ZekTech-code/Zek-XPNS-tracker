@@ -1,6 +1,8 @@
-import { formatDate, formatNumberWithCommas } from '../utils/finance.js';
+import { formatDate, formatMoney, formatNumberWithCommas } from '../utils/finance.js';
 
-export function TransactionList({ transactions, currency, onDelete, emptyText = 'No transactions yet.', full = false }) {
+const MASK = '\u2022\u2022\u2022\u2022';
+
+export function TransactionList({ transactions, currency, onDelete, emptyText = 'No transactions yet.', full = false, hideBalance = false }) {
   return (
     <ul className={`tx-list${full ? ' tx-list--full' : ''}`}>
       {transactions.length === 0 ? (
@@ -19,7 +21,7 @@ export function TransactionList({ transactions, currency, onDelete, emptyText = 
             </div>
             <div className="tx-right">
               <span className={`tx-amount tx-amount--${tx.type}`}>
-                {tx.type === 'deposit' ? '+' : '-'}{currency === 'NGN' ? '\u20A6' : '$'}{tx.amount.toLocaleString(currency === 'NGN' ? 'en-NG' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {tx.type === 'deposit' ? '+' : '-'}{hideBalance ? MASK : formatMoney(tx.amount, currency)}
               </span>
               {tx.type === 'expense' && onDelete && (
                 <button className="tx-delete" title="Delete" onClick={() => onDelete(tx.id)}>

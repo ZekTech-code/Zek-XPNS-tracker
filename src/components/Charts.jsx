@@ -13,7 +13,8 @@ import { getMetrics, sortOldest } from '../utils/finance.js';
 
 ChartJS.register(BarController, CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
-function fmt(n, currency = 'NGN') {
+function fmt(n, currency = 'NGN', hideBalance = false) {
+  if (hideBalance) return '\u2022\u2022\u2022\u2022';
   const sym = currency === 'NGN' ? '\u20A6' : '$';
   const locale = currency === 'NGN' ? 'en-NG' : 'en-US';
   return sym + Math.abs(Number(n) || 0).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -47,7 +48,7 @@ function tooltip(colors) {
   };
 }
 
-export function CashFlowChart({ transactions, theme }) {
+export function CashFlowChart({ transactions, theme, hideBalance }) {
   const colors = chartColors(theme);
   if (!transactions.length) {
     return <div className="chart-empty" id="flowEmpty"><i className="fa-regular fa-chart-bar" /><br />Add transactions to see cash flow.</div>;
@@ -85,11 +86,11 @@ export function CashFlowChart({ transactions, theme }) {
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { ...tooltip(colors), callbacks: { label: (ctx) => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y) } },
+            tooltip: { ...tooltip(colors), callbacks: { label: (ctx) => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y, 'NGN', hideBalance) } },
           },
           scales: {
             x: { grid: { display: false }, ticks: { color: colors.tick, font: { family: "'Space Grotesk',sans-serif", size: 10 }, autoSkip: true, maxRotation: 35 } },
-            y: { grid: { color: colors.grid }, ticks: { color: colors.tick, font: { family: "'JetBrains Mono',monospace", size: 10 }, callback: (v) => fmt(v) } },
+            y: { grid: { color: colors.grid }, ticks: { color: colors.tick, font: { family: "'JetBrains Mono',monospace", size: 10 }, callback: (v) => fmt(v, 'NGN', hideBalance) } },
           },
         }}
       />
@@ -97,7 +98,7 @@ export function CashFlowChart({ transactions, theme }) {
   );
 }
 
-export function TopExpensesChart({ transactions, theme }) {
+export function TopExpensesChart({ transactions, theme, hideBalance }) {
   const colors = chartColors(theme);
   const expenses = transactions.filter((tx) => tx.type === 'expense');
   if (!expenses.length) {
@@ -131,11 +132,11 @@ export function TopExpensesChart({ transactions, theme }) {
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { ...tooltip(colors), callbacks: { label: (ctx) => ' ' + fmt(ctx.parsed.y) } },
+            tooltip: { ...tooltip(colors), callbacks: { label: (ctx) => ' ' + fmt(ctx.parsed.y, 'NGN', hideBalance) } },
           },
           scales: {
             x: { ticks: { color: colors.tick, font: { family: "'JetBrains Mono',monospace", size: 10 }, maxRotation: 30 }, grid: { display: false } },
-            y: { ticks: { color: colors.tick, font: { family: "'JetBrains Mono',monospace", size: 10 }, callback: (v) => fmt(v) }, grid: { color: colors.grid } },
+            y: { ticks: { color: colors.tick, font: { family: "'JetBrains Mono',monospace", size: 10 }, callback: (v) => fmt(v, 'NGN', hideBalance) }, grid: { color: colors.grid } },
           },
         }}
       />
@@ -143,7 +144,7 @@ export function TopExpensesChart({ transactions, theme }) {
   );
 }
 
-export function DonutChart({ transactions, theme }) {
+export function DonutChart({ transactions, theme, hideBalance }) {
   const colors = chartColors(theme);
   const { dep, exp } = getMetrics(transactions);
   if (!transactions.length || (!dep && !exp)) {
@@ -170,7 +171,7 @@ export function DonutChart({ transactions, theme }) {
           cutout: '66%',
           plugins: {
             legend: { display: false },
-            tooltip: { ...tooltip(colors), callbacks: { label: (ctx) => ' ' + ctx.label + ': ' + fmt(ctx.parsed) } },
+            tooltip: { ...tooltip(colors), callbacks: { label: (ctx) => ' ' + ctx.label + ': ' + fmt(ctx.parsed, 'NGN', hideBalance) } },
           },
         }}
       />

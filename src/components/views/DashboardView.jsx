@@ -3,7 +3,9 @@ import { CashFlowChart, DonutChart, TopExpensesChart } from '../Charts.jsx';
 import { MoneyForm, TransactionList } from '../Transactions.jsx';
 import { displayMoney, formatMoney, formatSignedMoney, getMetrics, PREVIEW_LIMIT, sortNewest } from '../../utils/finance.js';
 
-function BalanceBanner({ transactions, currency }) {
+const MASK = '\u2022\u2022\u2022\u2022';
+
+function BalanceBanner({ transactions, currency, hideBalance }) {
   if (!transactions.length) return null;
   const { dep, exp, bal } = getMetrics(transactions);
   const pct = dep > 0 ? Math.min(100, Math.round((exp / dep) * 100)) : 0;
@@ -11,26 +13,26 @@ function BalanceBanner({ transactions, currency }) {
   let color = 'var(--green)';
   let bg = 'var(--green-dim)';
   let icon = 'fa-solid fa-circle-check';
-  let message = `${pct}% spent \u2014 ${formatMoney(bal, currency)} available`;
+  let message = `${pct}% spent \u2014 ${hideBalance ? MASK : formatMoney(bal, currency)} available`;
 
   if (bal < 0) {
     status = 'Overdrawn';
     color = 'var(--red)';
     bg = 'var(--red-dim)';
     icon = 'fa-solid fa-triangle-exclamation';
-    message = `Expenses exceed deposits by ${formatMoney(Math.abs(bal), currency)}`;
+    message = `Expenses exceed deposits by ${hideBalance ? MASK : formatMoney(Math.abs(bal), currency)}`;
   } else if (pct >= 90) {
     status = 'Critical';
     color = 'var(--amber)';
     bg = 'var(--amber-dim)';
     icon = 'fa-solid fa-triangle-exclamation';
-    message = `${pct}% spent \u2014 ${formatMoney(bal, currency)} remaining`;
+    message = `${pct}% spent \u2014 ${hideBalance ? MASK : formatMoney(bal, currency)} remaining`;
   } else if (pct >= 70) {
     status = 'Low Balance';
     color = 'var(--amber)';
     bg = 'var(--amber-dim)';
     icon = 'fa-solid fa-circle-exclamation';
-    message = `${pct}% spent \u2014 ${formatMoney(bal, currency)} remaining`;
+    message = `${pct}% spent \u2014 ${hideBalance ? MASK : formatMoney(bal, currency)} remaining`;
   }
 
   return (
@@ -66,7 +68,7 @@ export default function DashboardView({ state, actions }) {
         </div>
       </div>
 
-      <BalanceBanner transactions={transactions} currency={currency} />
+      <BalanceBanner transactions={transactions} currency={currency} hideBalance={hideBalance} />
 
       <div className="cards-row">
         <div className="card card--balance">
@@ -112,16 +114,16 @@ export default function DashboardView({ state, actions }) {
             <button className="text-btn" id="viewAllBtn" onClick={actions.openModal}>View all <i className="fa-solid fa-arrow-right" style={{ marginLeft: 4, fontSize: '0.85em' }} /></button>
           </div>
         </div>
-        <TransactionList transactions={filtered} currency={currency} onDelete={actions.deleteTransaction} />
+        <TransactionList transactions={filtered} currency={currency} onDelete={actions.deleteTransaction} hideBalance={hideBalance} />
       </div>}
 
       <div className="charts-grid">
         <div className="section-card chart-card chart-card--wide">
           <div className="section-header"><h2 className="section-title">Cash Flow</h2><div className="legend-row"><span className="leg leg--bal">Balance</span><span className="leg leg--dep">Deposits</span><span className="leg leg--exp">Expenses</span></div></div>
-          <CashFlowChart transactions={transactions} theme={theme} />
+          <CashFlowChart transactions={transactions} theme={theme} hideBalance={hideBalance} />
         </div>
-        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Top Expenses</h2></div><TopExpensesChart transactions={transactions} theme={theme} /></div>
-        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Deposit vs Expense</h2></div><DonutChart transactions={transactions} theme={theme} /></div>
+        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Top Expenses</h2></div><TopExpensesChart transactions={transactions} theme={theme} hideBalance={hideBalance} /></div>
+        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Deposit vs Expense</h2></div><DonutChart transactions={transactions} theme={theme} hideBalance={hideBalance} /></div>
       </div>
     </div>
   );
