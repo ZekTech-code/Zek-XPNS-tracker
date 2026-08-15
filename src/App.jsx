@@ -3,7 +3,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import LoadingScreen from './components/LoadingScreen.jsx';
 import OfflineBanner from './components/OfflineBanner.jsx';
 import { MobileBars, Sidebar } from './components/Navigation.jsx';
@@ -373,7 +373,7 @@ export default function App() {
     doc.text(`Deposits: ${fmtPDF(dep)}`, 14, 50);
     doc.text(`Expenses: ${fmtPDF(exp)}`, 14, 58);
     doc.text(`Net Balance: ${bal < 0 ? '-' : ''}${fmtPDF(bal)}`, 14, 66);
-    doc.autoTable({
+    autoTable(doc, {
       startY: 76,
       head: [['Date', 'Type', 'Description', 'Amount']],
       body: [...activeTx].sort((a, b) => new Date(a.date) - new Date(b.date)).map((tx) => [new Date(tx.date).toLocaleString('en-NG'), tx.type.toUpperCase(), tx.name, `${tx.type === 'deposit' ? '+' : '-'}${fmtPDF(tx.amount)}`]),
