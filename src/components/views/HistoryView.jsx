@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { TransactionList } from '../Transactions.jsx';
 import { activeTransactions, sortNewest } from '../../utils/finance.js';
 
-export default function HistoryView({ transactions, currency, filter, setFilter, search, setSearch, onDelete, onExportPDF }) {
+export default function HistoryView({ transactions, currency, filter, setFilter, search, setSearch, onDelete, onExportPDF, hideBalance }) {
   const activeTx = useMemo(() => activeTransactions(transactions), [transactions]);
   const { deposits, expenses, filtered } = useMemo(() => {
     const depositsList = activeTx.filter((tx) => tx.type === 'deposit');
@@ -43,7 +43,7 @@ export default function HistoryView({ transactions, currency, filter, setFilter,
           </div></div>
         </div>
         <div className="search-wrap"><i className="fa-solid fa-magnifying-glass search-icon" /><input type="text" id="searchInput" className="input input--search" placeholder="Search transactions�" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
-        <TransactionList transactions={filtered} currency={currency} onDelete={onDelete} emptyText="No transactions found." full />
+        <TransactionList transactions={filtered} currency={currency} onDelete={onDelete} emptyText="No transactions found." full hideBalance={hideBalance} />
       </div>
     </div>
   );
