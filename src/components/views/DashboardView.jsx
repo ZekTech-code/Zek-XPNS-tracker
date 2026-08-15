@@ -120,10 +120,10 @@ export default function DashboardView({ state, actions }) {
       <div className="charts-grid">
         <div className="section-card chart-card chart-card--wide">
           <div className="section-header"><h2 className="section-title">Cash Flow</h2><div className="legend-row"><span className="leg leg--bal">Balance</span><span className="leg leg--dep">Deposits</span><span className="leg leg--exp">Expenses</span></div></div>
-          <CashFlowChart transactions={transactions} theme={theme} hideBalance={hideBalance} />
+          <CashFlowChart transactions={transactions} theme={theme} />
         </div>
-        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Top Expenses</h2></div><TopExpensesChart transactions={transactions} theme={theme} hideBalance={hideBalance} /></div>
-        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Deposit vs Expense</h2></div><DonutChart transactions={transactions} theme={theme} hideBalance={hideBalance} /></div>
+        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Top Expenses</h2></div><TopExpensesChart transactions={transactions} theme={theme} /></div>
+        <div className="section-card chart-card"><div className="section-header"><h2 className="section-title">Deposit vs Expense</h2></div><DonutChart transactions={transactions} theme={theme} /></div>
       </div>
     </div>
   );
