@@ -1665,11 +1665,99 @@ body.light .avatar-upload-btn {
 @keyframes float-1 { 0%,100% { transform: translateY(0) rotate(0.4deg); } 50% { transform: translateY(-8px) rotate(-0.4deg); } }
 @keyframes float-2 { 0%,100% { transform: translateY(0) rotate(-0.4deg); } 50% { transform: translateY(-10px) rotate(0.4deg); } }
 @media (max-width: 1024px) {
-  .login-view .split-container { grid-template-columns: 1fr; }
-  .login-view .visual-panel { display: none; }
-  .login-view .auth-panel { padding: 40px 24px; }
+  .login-view .split-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .login-view .visual-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px 16px;
+    min-height: auto;
+    order: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(99,102,241,0.06) 0%, transparent 50%);
+  }
+  .login-view .visual-container {
+    max-width: 360px;
+    gap: 20px;
+  }
+  .login-view .mockup-container {
+    height: 180px;
+    margin-top: 0;
+  }
+  .login-view .glass-card {
+    width: 85%;
+    padding: 16px;
+    border-radius: 14px;
+    position: absolute;
+    top: 0;
+    left: 5%;
+  }
+  .login-view .glass-card:hover {
+    transform: none !important;
+    animation-play-state: paused;
+  }
+  .login-view .preview-card-value { font-size: 1.35rem; margin-bottom: 8px; }
+  .login-view .preview-card-title { font-size: 0.7rem; }
+  .login-view .preview-badge { font-size: 0.68rem; padding: 3px 8px; }
+  .login-view .preview-chart { height: 50px; }
+  .login-view .glass-card-sm {
+    width: 75%;
+    padding: 14px;
+    border-radius: 12px;
+    position: absolute;
+    bottom: 0;
+    right: 5%;
+  }
+  .login-view .glass-card-sm:hover {
+    transform: none !important;
+    animation-play-state: paused;
+  }
+  .login-view .preview-progress-bar { margin: 8px 0; }
+  .login-view .preview-card-footer { font-size: 0.7rem; }
+  .login-view .value-prop {
+    text-align: center;
+    padding: 0 8px;
+  }
+  .login-view .value-prop h2 {
+    font-size: 1.2rem;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+  .login-view .value-prop p {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  .login-view .auth-panel {
+    padding: 24px 20px 40px;
+    order: 1;
+  }
   .login-view .auth-content { max-width: 400px; }
   .login-view .auth-card { padding: 28px 24px; }
+}
+
+@media (max-width: 480px) {
+  .login-view .visual-panel {
+    padding: 16px 16px 10px;
+  }
+  .login-view .mockup-container {
+    height: 150px;
+  }
+  .login-view .glass-card {
+    padding: 12px;
+    width: 82%;
+  }
+  .login-view .glass-card-sm {
+    padding: 12px;
+    width: 72%;
+  }
+  .login-view .preview-card-value { font-size: 1.15rem; }
+  .login-view .value-prop h2 { font-size: 1.05rem; }
+  .login-view .value-prop p { font-size: 0.75rem; }
+  .login-view .auth-panel { padding: 20px 16px 32px; }
+  .login-view .auth-card { padding: 24px 18px; }
 }
 
 body.light .login-view .auth-card {
