@@ -226,6 +226,11 @@ export default function LoginView() {
 
   return (
     <div className="login-view">
+      <div className="money-rain" aria-hidden="true">
+        {Array.from({ length: 20 }, (_, i) => (
+          <span key={i} className={`money-bill money-bill--${(i % 4) + 1}`} style={{ left: `${(i * 5) + 2}%`, animationDelay: `${(i * 0.7) + Math.random() * 2}s`, animationDuration: `${4 + Math.random() * 4}s` }}>{'\u20A6'}</span>
+        ))}
+      </div>
       <div className="split-container">
         <aside className="visual-panel">
           <div className="visual-container">
