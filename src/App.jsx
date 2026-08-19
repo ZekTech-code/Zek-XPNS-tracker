@@ -351,38 +351,62 @@ export default function App() {
   }
 
   function exportPDF() {
-    const doc = new jsPDF();
-    const { dep, exp, bal } = getMetrics(transactions);
-    const fmtPDF = (n) => `${currency === 'NGN' ? 'NGN ' : '$'}${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(99, 102, 241);
-    doc.text('XPNS.', 14, 20);
-    doc.setFontSize(10);
-    doc.setFont('Helvetica', 'normal');
-    doc.setTextColor(112, 112, 160);
-    doc.text('Premium Expense Report', 14, 25);
-    doc.text(`User: ${userName}`, 140, 16);
-    doc.text(`Email: ${currentUser?.email || 'N/A'}`, 140, 21);
-    doc.text(`Exported: ${new Date().toLocaleString('en-NG')}`, 140, 26);
-    doc.line(14, 30, 196, 30);
-    doc.setTextColor(17, 17, 40);
-    doc.setFont('Helvetica', 'bold');
-    doc.text('Financial Summary', 14, 40);
-    doc.setFont('Helvetica', 'normal');
-    doc.text(`Deposits: ${fmtPDF(dep)}`, 14, 50);
-    doc.text(`Expenses: ${fmtPDF(exp)}`, 14, 58);
-    doc.text(`Net Balance: ${bal < 0 ? '-' : ''}${fmtPDF(bal)}`, 14, 66);
-    autoTable(doc, {
-      startY: 76,
-      head: [['Date', 'Type', 'Description', 'Amount']],
-      body: [...activeTx].sort((a, b) => new Date(a.date) - new Date(b.date)).map((tx) => [new Date(tx.date).toLocaleString('en-NG'), tx.type.toUpperCase(), tx.name, `${tx.type === 'deposit' ? '+' : '-'}${fmtPDF(tx.amount)}`]),
-      theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241], textColor: [255, 255, 255], fontStyle: 'bold' },
-      styles: { font: 'Helvetica', fontSize: 9, cellPadding: 3.5 },
-    });
-    doc.save(`xpns-report-${new Date().toISOString().slice(0, 10)}.pdf`);
-    addToast('PDF report downloaded.', 'success');
+    try {
+      const doc = new jsPDF();
+      const { dep, exp, bal } = getMetrics(transactions);
+      const fmtPDF = (n) => `${currency === 'NGN' ? 'NGN ' : '$'}${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+      doc.setFontSize(22);
+      doc.setTextColor(99, 102, 241);
+      doc.text('XPNS', 14, 20);
+
+      doc.setFontSize(10);
+      doc.setFont('Helvetica', 'normal');
+      doc.setTextColor(112, 112, 160);
+      doc.text('Premium Expense Report', 14, 26);
+      doc.text(`User: ${userName}`, 140, 16);
+      doc.text(`Email: ${currentUser?.email || 'N/A'}`, 140, 21);
+      doc.text(`Exported: ${new Date().toLocaleString('en-NG')}`, 140, 26);
+      doc.setDrawColor(99, 102, 241);
+      doc.setLineWidth(0.5);
+      doc.line(14, 30, 196, 30);
+
+      doc.setTextColor(17, 17, 40);
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('Financial Summary', 14, 40);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text(`Deposits: ${fmtPDF(dep)}`, 14, 50);
+      doc.text(`Expenses: ${fmtPDF(exp)}`, 14, 58);
+      doc.text(`Net Balance: ${bal < 0 ? '-' : ''}${fmtPDF(bal)}`, 14, 66);
+
+      const txBody = [...activeTx].sort((a, b) => new Date(a.date) - new Date(b.date)).map((tx) => [
+        new Date(tx.date).toLocaleString('en-NG'),
+        tx.type.toUpperCase(),
+        tx.name,
+        `${tx.type === 'deposit' ? '+' : '-'}${fmtPDF(tx.amount)}`,
+      ]);
+
+      if (txBody.length) {
+        autoTable(doc, {
+          startY: 76,
+          head: [['Date', 'Type', 'Description', 'Amount']],
+          body: txBody,
+          theme: 'striped',
+          headStyles: { fillColor: [99, 102, 241], textColor: [255, 255, 255], fontStyle: 'bold' },
+          styles: { font: 'Helvetica', fontSize: 9, cellPadding: 3.5 },
+        });
+      } else {
+        doc.text('No transactions to display.', 14, 80);
+      }
+
+      doc.save(`xpns-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+      addToast('PDF report downloaded.', 'success');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      addToast('Failed to export PDF. Please try again.', 'error');
+    }
   }
 
   function handleAvatarAction(action) {
